@@ -32,4 +32,36 @@
     pbp %>% distinct(home_name, .keep_all = TRUE) %>% distinct(away_name, .keep_all = TRUE) %>% select(c('home_name', 'away_name'))
     # a quick Google conforms it (https://www.google.com/search?channel=fs&client=ubuntu&q=nhl+february+27+2021) 
     # beware of dates, based on country games where 27/02 in Canada but for me would have been 26/02 in Australia
-  
+
+# Look ar roster
+  # Column names
+    roster %>% colnames()
+  # How do they lisy Postions?
+    roster$position %>% unique()
+    # Poorly
+  # How many and who plays 'D/RW'?
+    roster %>% filter(position == 'D/RW')
+    # Brent Burns who hasn't play RW Since joining San Jose
+  # Up dating Brent Burns potions 
+    roster[roster$player == 'Brent Burns', 'position'] <- 'D'
+  # check
+    roster[roster$player == 'Brent Burns', ]
+  # How many players in 2021 had the same name?
+    test <- roster %>% 
+      filter(player %in%
+        list(
+          roster %>% distinct(player, .keep_all = FALSE)
+        )
+      )
+    
+    
+# I'm just going to look at the one game Edmonton (EDM) Vs Toronto (TOR) (Go Leafs Go!!)
+  # filter just take all events where home team is EDM 
+    pbp_mini <- pbp %>% filter(home_abbreviation == 'EDM')
+    
+    
+    
+    
+    
+    
+    
