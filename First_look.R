@@ -85,13 +85,46 @@
     # for fun lets join with position, team and number for roster mini
       # format up roster_mini
         roster_mini <- roster_mini %>% select(player, team_name, position, number)
-    
-    
-   
-# traded and players of the same name /errors
-  test <- roster %>% get_dupes(player)
-  test <- test %>% group_by(player) %>% mutate(n_distinct = n_distinct(age, height, weight))
-  
-        
-        
+      # from the sample code roster mini to be same as player names in pbp (from sample code)
+        roster_mini <- roster_mini %>% mutate(player = str_replace_all(player, " ", "."),
+                                              player = str_replace_all(player, "-", "."),
+                                              player = str_replace_all(player, "'", "."))
+      # join to players to just get the player who played this game (from sample code we also know names we'll be different)
+        # see players with miss match names
+          players %>% left_join(roster_mini, by = 'player') %>% filter(is.na(number))
+        # we get 'TJ.Brodie' and 'Mitchell.Marner'        
+        # find them in roster_mini, with some kdogle we know both play for Toronto and there numbers are 16 and 78
+          roster_mini %>% filter(team_name == 'Toronto Maple Leafs') %>% filter(number == '16' | number == '78')
+        # gives 'T.J..Brodie' and Mitch.Marner. For Marner they used Mitch for roster but play by play use Mitchell easy fix
+          roster_mini <- roster_mini %>% mutate(player = case_when(player == "Mitch.Marner" ~ "Mitchell.Marner", TRUE ~ player))
+        # For Brodie we can do the same but be fore i would like to see if we can change string rplacing to work.
+        # the problem would be with other players with the same or similar naming convocation, like TJ oshie
+        # Oshie 77 for the Washington Capitals, lets find him in the roster list
+          roster %>% filter(number == '77' & team_name == 'Washington Capitals')
+        # save this and put the same formate as we did above
+          Oshie <- roster %>% filter(number == '77' & team_name == 'Washington Capitals')
+          Oshie <- Oshie %>% mutate(player = str_replace_all(player, " ", "."),
+                                    player = str_replace_all(player, "-", "."),
+                                    player = str_replace_all(player, "'", "."))
+          Oshie$player
+        # finding how his name is on pbp (quickiest way to to simple search for Oshie in the viewer), as an exercise we'll code it
+          pbp %>% filter(if_any(home_on_1:away_on_7, ~ str_detect(.,'Oshie'))) %>% head(1) %>% select(home_on_1:away_on_7) %>%
+            select_if( ~ any(str_detect(.,"Oshie"))) %>% as.character()
+        # creating a little data.frame to better view
+          TJs <- data.frame (pbp_name  = c(pbp %>% filter(if_any(home_on_1:away_on_7, ~ str_detect(.,'Oshie'))) %>% head(1) 
+                                            %>% select(home_on_1:away_on_7) %>%
+                                            select_if( ~ any(str_detect(.,"Oshie"))) %>% as.character(),
+                                           players %>% filter(str_detect(player, 'Brodie')) %>% as.character()),
+                             roster_name = c(roster %>% filter(number == '77' & team_name == 'Washington Capitals') %>% 
+                                               select(player) %>% as.character(),
+                                             roster %>% filter(number == '78' & team_name == 'Toronto Maple Leafs') %>% 
+                                               select(player) %>% as.character()))
+          # seems to be no constancy Oshie's pbp removes the space and adds the period
+          # Brodie's pbp removes the period's from the TJ section and still removes the space and adds the period
+          # In the future may look at other names like this and if its the same each game
+          
+        # Back to fixing up the roster dataframe
+          roster_mini <- roster_mini %>% mutate(player = case_when(player == "T.J..Brodie" ~ "TJ.Brodie", TRUE ~ player))
+          
+          
          
